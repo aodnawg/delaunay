@@ -8,10 +8,6 @@ import { searchTriangleWithEdge } from "./sketch/searchTriangleWithEdge";
 const canvasWidth = window.innerWidth;
 const canvasHeight = window.innerHeight;
 
-const drawTriangle = (p: P5) => ([[x0, y0], [x1, y1], [x2, y2]]: Triangle) => {
-  p.triangle(x0, y0, x1, y1, x2, y2);
-};
-
 const makeVertexList = (
   num: number,
   width: number,
@@ -165,33 +161,41 @@ const searchTriangleWrappingTargetVertex = (
   return targetTriangleIndex;
 };
 
+const makeDelauneyTriangle = (num: number) => {
+  const outerTriangle = makeOuterTriangle([0, 0], [canvasWidth, canvasHeight]);
+
+  const vertexList = makeVertexList(1024, canvasWidth, canvasHeight);
+
+  let triangleList = [outerTriangle];
+  vertexList.forEach((vertex) => {
+    const updatedList = updateTriangleListWithVertex(triangleList, vertex);
+    triangleList = updatedList;
+  });
+
+  return triangleList;
+};
+
+const num = 1024;
+const lists = range(0, 3).map(() => makeDelauneyTriangle(num));
+
 const makeSketch = () => (p: P5) => {
   p.setup = () => {
-    p.resizeCanvas(canvasWidth, canvasHeight);
-    p.noFill();
-
-    const outerTriangle = makeOuterTriangle(
-      [0, 0],
-      [canvasWidth, canvasHeight]
-    );
-
-    const vertexList = makeVertexList(1024, canvasWidth, canvasHeight);
-
-    let triangleList = [outerTriangle];
-    vertexList.forEach((vertex) => {
-      const updatedList = updateTriangleListWithVertex(triangleList, vertex);
-      triangleList = updatedList;
-    });
-
-    p.noStroke();
-
-    p.strokeWeight(0.1);
-    triangleList.forEach((t) => {
-      const color = Math.random() * 50 + 200;
-      p.fill(color);
-
-      p.stroke(50);
-      drawTriangle(p)(t);
+    p.createCanvas(canvasWidth, canvasHeight);
+    p.fill(255, 90);
+    p.stroke(0, 0, 0, 10);
+    p.strokeWeight(0.8);
+  };
+  const drawPickedTriangle = (list: Triangle[]) => {
+    const randomIndex = Math.floor(Math.random() * num);
+    const [[x0, y0], [x1, y1], [x2, y2]] = list[randomIndex];
+    p.triangle(x0, y0, x1, y1, x2, y2);
+  };
+  p.draw = () => {
+    lists.forEach((l) => {
+      drawPickedTriangle(l);
+      drawPickedTriangle(l);
+      drawPickedTriangle(l);
+      drawPickedTriangle(l);
     });
   };
 };
