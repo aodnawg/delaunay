@@ -6,7 +6,7 @@ describe("isTrianglesRequiredFlipping", () => {
     const p1: Position = [1, 2];
 
     const p2: Position = [1, 2];
-    const result = isVertexIncludedInTriangle(p1, [p2]);
+    const result = isVertexIncludedInTriangle(p1, [p2, p2, p2]);
     expect(result).toBeTruthy();
   });
 
@@ -14,7 +14,7 @@ describe("isTrianglesRequiredFlipping", () => {
     const p1: Position = [1, 2];
 
     const p2: Position = [1, 3];
-    const result = isVertexIncludedInTriangle(p1, [p2]);
+    const result = isVertexIncludedInTriangle(p1, [p2, p2, p2]);
     expect(result).toBeFalsy();
   });
 });
