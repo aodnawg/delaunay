@@ -181,13 +181,17 @@ const lists = range(0, 3).map(() => makeDelauneyTriangle(num));
 const makeSketch = () => (p: P5) => {
   p.setup = () => {
     p.createCanvas(canvasWidth, canvasHeight);
-    p.fill(255, 90);
-    p.stroke(0, 0, 0, 10);
+    p.fill(255, 60);
     p.strokeWeight(0.8);
   };
   const drawPickedTriangle = (list: Triangle[]) => {
+    p.translate(p.noise(p.frameCount, 0) - 0.5, p.noise(p.frameCount, 1) - 0.5);
     const randomIndex = Math.floor(Math.random() * num);
     const [[x0, y0], [x1, y1], [x2, y2]] = list[randomIndex];
+    const r = Math.random() * 250;
+    const g = Math.random() * 150;
+    const b = Math.random() * 150;
+    p.stroke(r, g, b, 10);
     p.triangle(x0, y0, x1, y1, x2, y2);
   };
   p.draw = () => {
