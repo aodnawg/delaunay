@@ -1,5 +1,5 @@
 import P5 from "p5";
-import { remove, concat, range } from "ramda";
+import { remove, concat, range, append } from "ramda";
 import { getDistance } from "./sketch/getDistance";
 import { Triangle, Position, Edge } from "./sketch/types";
 import { isTrianglesRequiredFlipping } from "./sketch/isTrianglesRequiredFlipping";
@@ -7,6 +7,10 @@ import { searchTriangleWithEdge } from "./sketch/searchTriangleWithEdge";
 
 const canvasWidth = window.innerWidth;
 const canvasHeight = window.innerHeight;
+
+const multipleVectors = <T extends number[]>(vec: T, n: number): T => {
+  return vec.map((v) => v * n) as T;
+};
 
 const makeVertexList = (
   num: number,
@@ -19,6 +23,22 @@ const makeVertexList = (
     const p: Position = [x, y];
     return p;
   });
+};
+
+const makeVertexListWithinTriangle = (triangle: Triangle, num: number) => {
+  const [origin, p1, p2] = triangle;
+  const v1 = subtractVectors(p1, origin);
+  const v2 = subtractVectors(p2, origin);
+  const gen = () => {
+    const s = Math.random();
+    const t = Math.random() * (1 - s);
+    return addVectors(
+      origin,
+      addVectors(multipleVectors(v1, s), multipleVectors(v2, t))
+    );
+  };
+  const result = range(0, num).map(gen);
+  return result;
 };
 
 const addVectors = <T extends number[]>(v1: T, v2: T): T => {
@@ -161,10 +181,13 @@ const searchTriangleWrappingTargetVertex = (
   return targetTriangleIndex;
 };
 
-const makeDelauneyTriangle = (num: number) => {
-  const outerTriangle = makeOuterTriangle([0, 0], [canvasWidth, canvasHeight]);
+const makeDelauneyTriangle = (num: number, initialTriangle?: Triangle) => {
+  const outerTriangle =
+    initialTriangle || makeOuterTriangle([0, 0], [canvasWidth, canvasHeight]);
 
-  const vertexList = makeVertexList(1024, canvasWidth, canvasHeight);
+  const vertexList = initialTriangle
+    ? makeVertexListWithinTriangle(initialTriangle, num)
+    : makeVertexList(num, canvasWidth, canvasHeight);
 
   let triangleList = [outerTriangle];
   vertexList.forEach((vertex) => {
@@ -175,31 +198,54 @@ const makeDelauneyTriangle = (num: number) => {
   return triangleList;
 };
 
-const num = 1024;
-const lists = range(0, 3).map(() => makeDelauneyTriangle(num));
+const a = makeDelauneyTriangle(40);
+const b = a
+  .filter((_, i) => i % 3 !== 0)
+  .map((t) => {
+    return makeDelauneyTriangle(16, t);
+  });
+const c = b.map((l) => {
+  return l
+    .filter((_, i) => i % 3 !== 0)
+    .map((t) => {
+      return makeDelauneyTriangle(64, t);
+    })
+    .flat();
+});
 
 const makeSketch = () => (p: P5) => {
   p.setup = () => {
     p.createCanvas(canvasWidth, canvasHeight);
-    p.fill(255, 60);
+    // p.fill(255, 60);
+    p.noFill();
     p.strokeWeight(0.8);
   };
-  const drawPickedTriangle = (list: Triangle[]) => {
-    p.translate(p.noise(p.frameCount, 0) - 0.5, p.noise(p.frameCount, 1) - 0.5);
-    const randomIndex = Math.floor(Math.random() * num);
+
+  const drawPickedTriangle = (list: Triangle[], weight: number) => {
+    p.resetMatrix();
+
+    p.translate(
+      (p.noise(p.frameCount, 0) - 0.5) * 1,
+      (p.noise(p.frameCount, 1) - 0.5) * 1
+    );
+    const randomIndex = Math.floor(Math.random() * list.length);
     const [[x0, y0], [x1, y1], [x2, y2]] = list[randomIndex];
     const r = Math.random() * 250;
-    const g = Math.random() * 150;
-    const b = Math.random() * 150;
+    const g = Math.random() * 250;
+    const b = Math.random() * 250;
+    p.strokeWeight(weight);
     p.stroke(r, g, b, 10);
     p.triangle(x0, y0, x1, y1, x2, y2);
   };
+
   p.draw = () => {
-    lists.forEach((l) => {
-      drawPickedTriangle(l);
-      drawPickedTriangle(l);
-      drawPickedTriangle(l);
-      drawPickedTriangle(l);
+    drawPickedTriangle(a, 0.05);
+
+    b.forEach((l) => {
+      drawPickedTriangle(l, 0.1);
+    });
+    c.forEach((l) => {
+      drawPickedTriangle(l, 2);
     });
   };
 };
