@@ -9,12 +9,14 @@ import { multipleVectors } from "./multipleVectors";
 const makeVertexList = (
   num: number,
   width: number,
-  height: number
+  height: number,
+  k?: number
 ): Position[] => {
   return range(0, num).map(() => {
-    const x = Math.random() * width;
-    const y = Math.random() * height;
-    const p: Position = [x, y];
+    const k_ = k || 1;
+    const x = Math.floor(Math.random() * width * k_);
+    const y = Math.floor(Math.random() * height * k_);
+    const p: Position = [x / k_, y / k_];
     return p;
   });
 };
@@ -150,7 +152,7 @@ export const makeDelauneyTriangle = (
 
   const vertexList =
     canvasWidth && canvasHeight
-      ? makeVertexList(num, canvasWidth, canvasHeight)
+      ? makeVertexList(num, canvasWidth, canvasHeight, 200)
       : makeVertexListWithinTriangle(initialTriangle, num);
 
   let triangleList = [outerTriangle];

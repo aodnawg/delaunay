@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import P5 from "p5";
-import makeSketch from "./makeSketch";
+import makeSketch from "./sketch2";
 
 const sketch = makeSketch();
 
